@@ -158,9 +158,7 @@ class ScrapeTab(QWidget):
         self.rel = QSpinBox()
         self.rel.setRange(0, 100)
         self.rel.setValue(50)
-        self.rel.setToolTip("Loại video có mô tả/hashtag không khớp từ khóa. 0 = chỉ gắn nhãn, không loại. "
-                            "Từ khóa ngắn chỉ có vài mức điểm (vd 3 chữ Hán: 0/50/100%). "
-                            "Douyin/XHS mặc định 0 vì nền tảng đã tự xếp theo ngữ nghĩa.")
+        self.rel.setToolTip("Loại video có mô tả/hashtag không khớp từ khóa. 0 = tắt. Chỉ áp cho chế độ Từ khóa.")
         row.addWidget(self.rel)
         row.addStretch(1)
         lay.addLayout(row)
@@ -274,7 +272,6 @@ class ScrapeTab(QWidget):
     # ---------- hành vi ----------
     def _on_platform(self, key: str) -> None:
         self.platform = key
-        self.rel.setValue(50 if key == "tiktok" else 0)
         self.min_label.setText("Lượt xem tối thiểu:" if key == "tiktok" else "Lượt tim tối thiểu:")
         xhs = key == "xhs"
         self.cart.setEnabled(not xhs)

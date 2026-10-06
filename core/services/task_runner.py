@@ -181,10 +181,13 @@ class TaskRunner:
         if cur.done.is_set():
             return
         api = str(msg.get("api") or msg.get("type"))
+        if cur.platform == "douyin" and cur.mode == "keyword" and "search" not in api.lower():
+            return   # feed/yêu thích/gợi ý không phải kết quả tìm kiếm
         payload = msg.get("payload")
         if self.cfg.save_raw_captures:
             self._dump(cur.platform, api, payload)
         items = normalize(cur.platform, api, payload)
+        self.bus.log(f"  nhận {msg.get('type')} {api[:90]} -> {len(items)} video")  # tạm: chẩn đoán hook Douyin
         if not items:
             return
         new_n = 0

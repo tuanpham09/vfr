@@ -5,12 +5,12 @@ const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 
-function boot(host) {
+function boot(host, ct = "application/json", text = null) {
   const posted = [];
-  const body = JSON.stringify({ data: [{ item: { id: "1" } }], pad: "x".repeat(300) });
+  const body = text ?? JSON.stringify({ data: [{ item: { id: "1" } }], pad: "x".repeat(300) });
   const win = {
     postMessage: (m) => posted.push(m),
-    fetch: async (url) => new Response(body, { headers: { "content-type": "application/json" } }),
+    fetch: async () => new Response(body, { headers: { "content-type": ct } }),
     addEventListener: () => {},
   };
   const XHR = function () {}; XHR.prototype.open = function () {}; XHR.prototype.addEventListener = function (e, f) { this._l = f; };
@@ -44,4 +44,13 @@ test("hook XHR: bắt response JSON", () => {
 test("không gắn hook hai lần", () => {
   const { win } = boot("www.tiktok.com");
   assert.equal(win.__vfrInjected, true);
+});
+
+test("hook fetch: search dạng stream gửi nguyên văn bản", async () => {
+  const text = "data: " + JSON.stringify({ a: "y".repeat(300) }) + "\n\ndata: {}";
+  const { win, posted } = boot("www.douyin.com", "text/event-stream", text);
+  await win.fetch("https://www.douyin.com/aweme/v1/web/general/search/stream/?keyword=a");
+  await new Promise((r) => setTimeout(r, 20));
+  assert.equal(posted.length, 1);
+  assert.equal(typeof posted[0].data, "string");
 });

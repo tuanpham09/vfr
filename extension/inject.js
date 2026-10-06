@@ -5,6 +5,7 @@
   window.__vfrInjected = true;
   const API_RE = /(\/api\/|\/aweme\/|\/web\/api\/|\/sns\/web\/)/;
   const MIN_LEN = 200;
+  const SEARCH_RE = /\/search\//;
 
   const emit = (kind, url, data) => {
     try { window.postMessage({ __vfr: 1, kind, url: String(url), data }, "*"); } catch (e) {}
@@ -17,9 +18,11 @@
     try {
       const url = typeof args[0] === "string" ? args[0] : (args[0] && args[0].url) || "";
       const ct = (res.headers && res.headers.get("content-type")) || "";
-      if (interesting(url) && /json/i.test(ct)) {
+      if (interesting(url) && (/json/i.test(ct) || SEARCH_RE.test(url))) {
         res.clone().text().then((t) => {
-          if (t.length >= MIN_LEN) { try { emit("captured", url, JSON.parse(t)); } catch (e) {} }
+          if (t.length < MIN_LEN) return;
+          try { emit("captured", url, JSON.parse(t)); }
+          catch (e) { if (SEARCH_RE.test(url)) emit("captured", url, t); }  // stream: Python tách
         }).catch(() => {});
       }
     } catch (e) {}

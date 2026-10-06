@@ -83,5 +83,19 @@ class TestXhs(unittest.TestCase):
         self.assertEqual(i.author_name, "薯薯")
 
 
+class TestStream(unittest.TestCase):
+    def test_split_and_normalize_stream(self):
+        from core.pipeline.stream import split_json_values
+        api, pl = load("douyin/search_synthetic.json")
+        text = "data: " + json.dumps(pl) + "\n\ndata: " + json.dumps({"x": 1}) + "\n"
+        self.assertEqual(len(split_json_values(text)), 2)
+        self.assertEqual([i.video_id for i in normalize("douyin", api, text)], ["7400000000000000001"])
+        self.assertEqual(split_json_values("không có json"), [])
+
+    def test_favorite_excluded(self):
+        api, pl = load("douyin/search_synthetic.json")
+        self.assertEqual(normalize("douyin", "/aweme/v1/web/aweme/favorite/?a=1", pl), [])
+
+
 if __name__ == "__main__":
     unittest.main()
