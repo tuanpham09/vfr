@@ -1,0 +1,30 @@
+{
+ "_source": "Dựng lại từ cấu trúc/giá trị công khai trong tài liệu và mẫu của các dự án mã nguồn mở/scraper (xem docs/design/FIELD_VERIFICATION.md). Không phải response nguyên bản.",
+ "payload": {
+  "aweme_list": [
+   {
+    "aweme_id": "7000000000000000001",
+    "desc": "x",
+    "author": {
+     "uid": "1",
+     "sec_uid": "MS4w",
+     "nickname": "n"
+    },
+    "statistics": {
+     "comment_count": 4719,
+     "digg_count": 70996,
+     "collect_count": 2021,
+     "share_count": 300,
+     "play_count": 0
+    },
+    "video": {
+     "play_addr": {
+      "url_list": [
+       "https://aweme.snssdk.com/aweme/v1/playwm/?video_id=v0200&ratio=720p&line=0"
+      ]
+     }
+    }
+   }
+  ]
+ }
+}

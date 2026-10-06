@@ -1,0 +1,61 @@
+{
+ "_synthetic": "SYNTHETIC: dựng theo hiểu biết về cấu trúc, KHÔNG phải dữ liệu thật. Thay bằng capture thật (docs/harness/FIXTURES.md).",
+ "api": "/api/sns/web/v1/search/notes",
+ "payload": {
+  "code": 0,
+  "success": true,
+  "data": {
+   "has_more": true,
+   "items": [
+    {
+     "id": "65a000000000000000000001",
+     "model_type": "note",
+     "xsec_token": "TOKEN_PLACEHOLDER",
+     "note_card": {
+      "type": "video",
+      "display_title": "防晒霜真实测评",
+      "user": {
+       "user_id": "u1",
+       "nickname": "薯薯"
+      },
+      "interact_info": {
+       "liked_count": "1.2万",
+       "comment_count": "356",
+       "collected_count": "2.3k",
+       "shared_count": "45"
+      },
+      "cover": {
+       "url_default": "https://x.example/c.jpg"
+      }
+     }
+    },
+    {
+     "id": "65a000000000000000000002",
+     "model_type": "note",
+     "xsec_token": "T2",
+     "note_card": {
+      "type": "normal",
+      "display_title": "图文",
+      "user": {
+       "user_id": "u2",
+       "nickname": "n"
+      },
+      "interact_info": {
+       "liked_count": "10",
+       "comment_count": "1",
+       "collected_count": "1",
+       "shared_count": "0"
+      }
+     }
+    },
+    {
+     "id": "rec1",
+     "model_type": "rec_query",
+     "rec_query": {
+      "queries": []
+     }
+    }
+   ]
+  }
+ }
+}

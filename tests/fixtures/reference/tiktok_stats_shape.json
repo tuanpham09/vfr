@@ -1,0 +1,30 @@
+{
+ "_source": "Dựng lại từ cấu trúc/giá trị công khai trong tài liệu và mẫu của các dự án mã nguồn mở/scraper (xem docs/design/FIELD_VERIFICATION.md). Không phải response nguyên bản.",
+ "payload": {
+  "itemList": [
+   {
+    "id": "6818316025491246342",
+    "desc": "My 2015 moves still play in 2020 #quarantinelife #throwback",
+    "createTime": 1587512910,
+    "author": {
+     "id": "1",
+     "uniqueId": "someuser",
+     "nickname": "Some User"
+    },
+    "video": {
+     "duration": 11,
+     "cover": "https://x/c.jpg",
+     "playAddr": "https://x/v.mp4",
+     "downloadAddr": "https://x/d.mp4"
+    },
+    "stats": {
+     "diggCount": 3773532,
+     "shareCount": 33456,
+     "commentCount": 20166,
+     "playCount": 37825357,
+     "collectCount": 1234
+    }
+   }
+  ]
+ }
+}

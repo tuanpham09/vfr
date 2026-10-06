@@ -1,0 +1,83 @@
+{
+ "_synthetic": "SYNTHETIC: dựng theo hiểu biết về cấu trúc, KHÔNG phải dữ liệu thật. Thay bằng capture thật (docs/harness/FIXTURES.md).",
+ "api": "/api/search/general/full/",
+ "payload": {
+  "status_code": 0,
+  "has_more": 1,
+  "data": [
+   {
+    "type": 1,
+    "item": {
+     "id": "7300000000000000001",
+     "desc": "Review kem chống nắng Anessa #reviewlamdep #sunscreen",
+     "createTime": "1700000000",
+     "author": {
+      "id": "111",
+      "uniqueId": "linh.review",
+      "nickname": "Linh Review"
+     },
+     "stats": {
+      "playCount": 1234567,
+      "diggCount": 45600,
+      "commentCount": 789,
+      "shareCount": 120,
+      "collectCount": "3400"
+     },
+     "textExtra": [
+      {
+       "hashtagName": "reviewlamdep"
+      },
+      {
+       "hashtagName": "sunscreen"
+      }
+     ],
+     "video": {
+      "cover": "https://cdn.example/c1.jpg",
+      "playAddr": "https://cdn.example/v1.mp4",
+      "duration": 35
+     },
+     "anchors": [
+      {
+       "type": 33,
+       "keyword": "Anessa Shop product",
+       "extraInfo": {}
+      }
+     ]
+    }
+   },
+   {
+    "type": 1,
+    "item": {
+     "id": "7300000000000000002",
+     "desc": "unbox",
+     "createTime": 1700000100,
+     "author": {
+      "id": "222",
+      "uniqueId": "bao",
+      "nickname": "Bao"
+     },
+     "stats": {
+      "playCount": 0,
+      "diggCount": 5,
+      "commentCount": 0,
+      "shareCount": 0,
+      "collectCount": 0
+     },
+     "video": {
+      "cover": "https://cdn.example/c2.jpg",
+      "playAddr": "",
+      "duration": 12
+     }
+    }
+   },
+   {
+    "type": 4,
+    "user_list": [
+     {
+      "id": "x"
+     }
+    ]
+   }
+  ]
+ }
+}

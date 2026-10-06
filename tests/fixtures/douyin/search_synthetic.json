@@ -1,0 +1,80 @@
+{
+ "_synthetic": "SYNTHETIC: dựng theo hiểu biết về cấu trúc, KHÔNG phải dữ liệu thật. Thay bằng capture thật (docs/harness/FIXTURES.md).",
+ "api": "/aweme/v1/web/general/search/single/",
+ "payload": {
+  "status_code": 0,
+  "data": [
+   {
+    "type": 1,
+    "aweme_info": {
+     "aweme_id": "7400000000000000001",
+     "desc": "防晒霜测评 #防晒 #测评",
+     "create_time": 1700000000,
+     "author": {
+      "uid": "9",
+      "sec_uid": "MS4wLjABAAAA_x",
+      "nickname": "小美"
+     },
+     "statistics": {
+      "digg_count": 23000,
+      "comment_count": 456,
+      "collect_count": 7800,
+      "share_count": 90,
+      "play_count": 0
+     },
+     "text_extra": [
+      {
+       "hashtag_name": "防晒"
+      },
+      {
+       "hashtag_name": "测评"
+      }
+     ],
+     "video": {
+      "cover": {
+       "url_list": [
+        "https://p.example/c.jpg"
+       ]
+      },
+      "play_addr": {
+       "url_list": [
+        "https://v.example/play.mp4"
+       ]
+      },
+      "duration": 42000
+     },
+     "anchor_info": {
+      "type": 1,
+      "extra": "{\"product_id\":\"123\"}"
+     }
+    }
+   },
+   {
+    "type": 1,
+    "aweme_info": {
+     "aweme_id": "7400000000000000002",
+     "desc": "图集",
+     "statistics": {
+      "digg_count": 1
+     },
+     "images": [
+      {
+       "u": 1
+      }
+     ]
+    }
+   },
+   {
+    "type": 1,
+    "aweme_info": {
+     "aweme_id": "7400000000000000003",
+     "desc": "广告",
+     "is_ads": true,
+     "statistics": {
+      "digg_count": 9
+     }
+    }
+   }
+  ]
+ }
+}

@@ -1,0 +1,27 @@
+{
+ "_source": "Dựng lại từ cấu trúc/giá trị công khai trong tài liệu và mẫu của các dự án mã nguồn mở/scraper (xem docs/design/FIELD_VERIFICATION.md). Không phải response nguyên bản.",
+ "payload": {
+  "data": {
+   "items": [
+    {
+     "id": "6744c12c000000000201acfb",
+     "xsec_token": "T",
+     "note_card": {
+      "type": "video",
+      "display_title": "t",
+      "user": {
+       "user_id": "u",
+       "nickname": "nn"
+      },
+      "interact_info": {
+       "liked_count": "1.5万",
+       "collected_count": "2300",
+       "comment_count": "88",
+       "share_count": "7"
+      }
+     }
+    }
+   ]
+  }
+ }
+}

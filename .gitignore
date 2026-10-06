@@ -1,0 +1,10 @@
+app/__pycache__/**
+app/models/__pycache__/**
+app/tabs/__pycache__/**
+core/__pycache__/**
+core/infra/__pycache__/**
+core/infra/browser/__pycache__/**
+core/infra/browser/commands/__pycache__/**
+core/pipeline/__pycache__/**
+core/pipeline/normalizers/__pycache__/**
+core/services/__pycache__/**
