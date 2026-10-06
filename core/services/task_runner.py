@@ -15,7 +15,7 @@ from core.events import EventBus, JobState, Paused, Progress, VideoUpsert
 from core.infra.db import Repo
 from core.pipeline.filters import hashtag_matches, passes
 from core.pipeline.normalizers import normalize
-from core.pipeline.relevance import relevance_score
+from core.pipeline.relevance import has_signal, relevance_score
 from core.pipeline.url_builder import build_url, tiktok_handle
 from core.types import PLATFORM_LABEL, ScrapeJob
 
@@ -200,9 +200,12 @@ class TaskRunner:
             if cur.handle and it.author_id and it.author_id.lower() != cur.handle:
                 self._reject(cur, "sai kênh")
                 continue
-            if cur.mode == "keyword":
+            if cur.mode == "keyword" and has_signal(it):
                 it.relevance = relevance_score(cur.input, it)
                 if job.min_relevance > 0 and it.relevance < job.min_relevance:
+                    if cur.rej["không sát từ khóa"] < 5:   # mẫu để chẩn đoán
+                        self.bus.log(f"  loại (sát {it.relevance:.2f}): {it.desc[:60]!r} "
+                                     f"tags={it.hashtags[:5]} tác giả={it.author_name!r}", "warn")
                     self._reject(cur, "không sát từ khóa")
                     continue
             ok, why = passes(it, job)

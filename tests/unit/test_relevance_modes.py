@@ -37,6 +37,13 @@ class TestRelevance(unittest.TestCase):
         self.assertGreaterEqual(relevance_score("防晒霜测评", it), 0.75)
         self.assertEqual(relevance_score("口红", it), 0.0)
 
+    def test_phrase_and_signal(self):
+        from core.pipeline.relevance import has_signal
+        self.assertEqual(relevance_score("绞肉机", vi(platform="douyin", desc="多功能绞肉机 测评")), 1.0)
+        self.assertEqual(relevance_score("绞肉机", vi(platform="douyin", desc="碎肉机")), 0.5)  # chung bigram 肉机
+        self.assertFalse(has_signal(vi(desc="", hashtags=[])))
+        self.assertTrue(has_signal(vi(desc="", hashtags=["x"])))
+
     def test_hashtag_and_author_count(self):
         it = vi(desc="", hashtags=["anessa"], author_name="Linh")
         self.assertEqual(relevance_score("anessa", it), 1.0)
@@ -80,6 +87,12 @@ class TestModes(unittest.IsolatedAsyncioTestCase):
                                       "tiktok/search_synthetic.json")
         self.assertEqual(vids, [])
         self.assertTrue(any(isinstance(e, Log) and e.level == "warn" and "sát từ khóa" in e.msg for e in ev))
+
+    async def test_empty_desc_not_rejected(self):
+        # fixture douyin có 1 video hợp lệ, desc "防晒霜测评": từ khóa lạc đề phải loại, desc rỗng phải giữ
+        vids, ev, _ = await self._run(ScrapeJob("douyin", "keyword", ["绞肉机"], target=5),
+                                      "douyin/search_synthetic.json")
+        self.assertEqual(vids, [])   # có desc nhưng lạc đề -> vẫn loại khi min_relevance=0.5
 
     async def test_tiktok_user_only_that_channel(self):
         vids, ev, link = await self._run(ScrapeJob("tiktok", "user", ["@linh.review"], target=10),

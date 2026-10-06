@@ -35,9 +35,17 @@ def tokens(query: str) -> list[str]:
     return [t for t in out if not (t in seen or seen.add(t))]
 
 
+def has_signal(item: VideoItem) -> bool:
+    """False nếu không có chữ nào để chấm (desc rỗng, không hashtag) -> không nên loại."""
+    return bool((item.desc or "").strip() or item.hashtags)
+
+
 def relevance_score(query: str, item: VideoItem) -> float:
     toks = tokens(query)
     if not toks:
         return 1.0
     text = normalize_text(" ".join([item.desc, " ".join(item.hashtags), item.author_name]))
+    phrase = _JUNK.sub("", normalize_text(query))
+    if phrase and phrase in _JUNK.sub("", text):   # cả cụm nằm trong text -> khớp hoàn toàn
+        return 1.0
     return sum(1 for t in toks if t in text) / len(toks)
