@@ -1,11 +1,10 @@
-"""SQLite (stdlib). Upsert hợp nhất: giá trị mới khác None thì ghi đè, giữ trạng thái cục bộ."""
+"""SQLite (stdlib). Upsert hợp nhất: None = thiếu số liệu -> giữ cũ; 0 = giá trị thật -> ghi đè."""
 from __future__ import annotations
 
 import json
 import sqlite3
 import threading
 import time
-from dataclasses import fields
 
 from core.types import VideoItem
 
@@ -24,8 +23,11 @@ _RENAME = {"like": "like_count", "comment": "comment_count", "collect": "collect
            "share": "share_count"}
 _KEEP_OLD = ("status", "local_path", "has_face")
 _TEXT_FIELDS = ("url", "desc", "author_id", "author_name", "cover_url", "play_url", "query", "task_id")
-_NUM_FIELDS = ("duration_s", "play", "like", "comment", "collect", "share", "has_cart", "created_at",
-               "relevance")
+# Số đếm: None = thiếu số liệu -> giữ cũ; 0 = giá trị thật (video 0 tim) -> ghi đè.
+# Quy ước khớp omit_unavailable ở normalizer (None≠0) và test TestOmitUnavailable.
+_COUNT_FIELDS = ("play", "like", "comment", "collect", "share")
+# Số khác: None = thiếu -> giữ cũ; mọi giá trị khác (kể cả 0/0.0) đều ghi đè.
+_PLAIN_NUM_FIELDS = ("duration_s", "created_at", "relevance")
 
 
 def _b(v: bool | None) -> int | None:
@@ -42,9 +44,20 @@ def merge(old: VideoItem | None, new: VideoItem) -> VideoItem:
     for f in _TEXT_FIELDS:
         if not getattr(new, f):
             setattr(new, f, getattr(old, f))
-    for f in _NUM_FIELDS:
+    for f in _COUNT_FIELDS:
+        # P0: None = thiếu số liệu -> giữ cũ; 0 = giá trị thật -> ghi đè.
+        # Điều kiện cũ (0 giữ old) làm DB không bao giờ hiện 0 thật, vỡ
+        # contract omit_unavailable None≠0 ở normalizer.
         if getattr(new, f) is None:
             setattr(new, f, getattr(old, f))
+    for f in _PLAIN_NUM_FIELDS:
+        # None = thiếu số liệu -> giữ cũ; 0/0.0 là giá trị thật -> ghi đè.
+        if getattr(new, f) is None:
+            setattr(new, f, getattr(old, f))
+    # has_cart là tri-state bool|None: chỉ None mới giữ cũ. So sánh == 0
+    # trước đây giữ stale True mãi vì False == 0 trong Python (vỡ only_cart).
+    if new.has_cart is None:
+        new.has_cart = old.has_cart
     if not new.hashtags:
         new.hashtags = old.hashtags
     for f in _KEEP_OLD:

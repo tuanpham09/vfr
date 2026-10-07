@@ -18,7 +18,8 @@ Ngày: 06/10/2026. Phương pháp: so tên trường mà normalizer đang đọc
 | XHS | `note_card.user.{user_id,nickname}`, `type` = `normal`/`video`, user-posts: `notes[].interact_info`, `display_title` | **Khớp** | tài liệu redbook |
 
 ## Chưa đối chiếu được (vẫn [VERIFY])
-- TikTok `statsV2` (chuỗi), trường giỏ hàng `anchors`; Douyin `anchor_info`/trường sản phẩm; mọi `has_cart`.
+- TikTok `statsV2` (chuỗi); giỏ hàng `isECVideo`/`anchors` type `5/33/35`/`anchor_shop`/`product_id`/`commerceInfo` (TikTok) và `anchor_info`/`shop_product_info`/`commerce_info` (Douyin) — đã cài `has_cart_signals` + test synthetic, chờ fixture thật để gỡ [VERIFY].
+- Chuỗi tải Douyin `bit_rate`/`gear_name`/`cs` và XHS `video.media.stream.h264/h265` — đã cài `media_urls.douyin_url_chain`/`rednote_url_chain` + `downloader.resolve_chain` + test synthetic, chờ fixture thật để gỡ [VERIFY].
 - Douyin `video.cover.url_list`, đơn vị `video.duration` (đang giả định mili giây).
 - Cấu trúc bọc ngoài của API *tìm kiếm* (`data[].item`, `data[].aweme_info`, `data.items[]`): normalizer duyệt đệ quy nên ít phụ thuộc, nhưng chưa thấy mẫu thật.
 - Một nguồn hướng dẫn dùng `note['liked_count']` phẳng cho XHS; chưa xác nhận, chưa hỗ trợ.

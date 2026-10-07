@@ -86,7 +86,7 @@ class ScrapeTab(QWidget):
         b.progress.connect(self.on_progress)
         self.model.countsChanged.connect(self._refresh_counts)
         self.model.selectionChanged.connect(self._refresh_counts)
-        self.model.load(api.list_videos())
+        # Không load lịch sử DB khi mở app: bảng bắt đầu trống, chỉ hiện video của phiên cào hiện tại.
         self._on_platform("tiktok")
         self.on_ext(False, "")
 

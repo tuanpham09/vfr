@@ -78,6 +78,11 @@ class TestRepo(unittest.TestCase):
             self.assertFalse(new2)
             self.assertEqual((b.play, b.like, b.comment, b.desc, b.hashtags), (200, 10, 3, "a", ["x"]))
             self.assertEqual((b.status, b.local_path, b.has_face), ("done", "/f.mp4", True))
+            c, _ = r.upsert(vi(play=0, like=0))
+            # P0: 0 là giá trị thật -> ghi đè; None mới giữ cũ (khớp omit_unavailable None≠0).
+            self.assertEqual((c.play, c.like), (0, 0))
+            d, _ = r.upsert(vi(play=None, like=None))
+            self.assertEqual((d.play, d.like), (0, 0))
             self.assertEqual(len(r.list_videos()), 1)
             r.close()
 

@@ -5,6 +5,10 @@ const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 
+function loadJs(ctx, rel) {
+  vm.runInContext(fs.readFileSync(path.join(__dirname, "../../extension", rel), "utf8"), ctx);
+}
+
 function boot(host, ct = "application/json", text = null) {
   const posted = [];
   const body = text ?? JSON.stringify({ data: [{ item: { id: "1" } }], pad: "x".repeat(300) });
@@ -14,12 +18,18 @@ function boot(host, ct = "application/json", text = null) {
     addEventListener: () => {},
   };
   const XHR = function () {}; XHR.prototype.open = function () {}; XHR.prototype.addEventListener = function (e, f) { this._l = f; };
-  const ctx = { window: win, location: { hostname: host, href: "https://" + host + "/x" }, document: { readyState: "loading", getElementById: () => null },
-    XMLHttpRequest: XHR, setTimeout, Response, JSON, console };
+  const ctx = { window: win, location: { hostname: host, href: "https://" + host + "/x" }, document: { readyState: "loading", getElementById: () => null, querySelectorAll: () => [] },
+    XMLHttpRequest: XHR, setTimeout, Response, TextDecoder, JSON, console };
   win.window = win;
+  ctx.window = win;
   vm.createContext(ctx);
-  vm.runInContext(fs.readFileSync(path.join(__dirname, "../../extension/inject.js"), "utf8"), ctx);
-  return { win, posted, XHR };
+  // Nạp adapters trước inject.js, đúng thứ tự manifest.json.
+  // Adapters và inject.js chung vm global nên globalThis.__vfrAdapters dùng chung được.
+  for (const f of ["adapters/common.js", "adapters/douyin.js", "adapters/tiktok.js", "adapters/xhs.js"]) {
+    loadJs(ctx, f);
+  }
+  loadJs(ctx, "inject.js");
+  return { win, posted, XHR, ctx };
 }
 
 test("hook fetch: chuyển JSON API, bỏ URL không phải API", async () => {

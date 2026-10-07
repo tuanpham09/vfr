@@ -10,7 +10,7 @@ Mọi mục **[VERIFY]** phải được xác nhận bằng fixture thật rồi
 
 - API pattern cần hook: `search/item`, `search/general`, `challenge/item_list`, `post/item_list` [VERIFY].
 - SSR: `__UNIVERSAL_DATA_FOR_REHYDRATION__` trong `<script>` [VERIFY] (trang đầu tag/user).
-- Trường dự kiến: `video.cover`, `video.playAddr`/`downloadAddr`, `anchors` (giỏ hàng) [VERIFY].
+- Trường dự kiến: `video.cover`, `video.playAddr`/`downloadAddr`, giỏ hàng [VERIFY]: `isECVideo == 1`, `anchors` type `5/33/35` hoặc `component_key="anchor_shop"`, `extra` chứa `product_id`, `commerceInfo` (logic ở `has_cart_signals` trong `common.py`, test synthetic ở `test_normalizers.py::TestCartSignals`).
 - Số liệu (đi qua `parse_count`):
 
 | VideoItem | Trường JSON [VERIFY] |

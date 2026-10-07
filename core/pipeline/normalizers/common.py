@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 from typing import Iterator
 
@@ -99,3 +100,47 @@ def dedupe_tags(tags: list[str]) -> list[str]:
             seen.add(t.lower())
             res.append(t)
     return res
+
+
+# Tín hiệu giỏ hàng TikTok/Douyin [VERIFY] — chờ fixture thật để chốt.
+EC_ANCHOR_TYPES = frozenset({"5", "33", "35"})
+ANCHOR_SHOP_KEYS = ("anchor_shop",)
+CART_HINTS = ("shop", "product", "commerce", "goods", "product_id", "commerceinfo")
+CART_KEYS = ("anchor_info", "shop_product_info", "commerce_info", "commerceInfo", "extra")
+
+
+def _blob(v: object) -> str:
+    try:
+        return json.dumps(v, ensure_ascii=False, default=str).lower()
+    except (TypeError, ValueError):
+        return ""
+
+
+def has_cart_signals(d: dict) -> bool:
+    """True nếu item có tín hiệu gắn giỏ hàng; False nếu duyệt item hợp lệ mà không thấy.
+
+    Không raise với payload lạ. Quy ước tri-state nằm ở normalizer:
+    XHS luôn None, TikTok/Douyin trả True/False.
+    """
+    if not isinstance(d, dict):
+        return False
+    if d.get("isECVideo") in (1, "1", True):
+        return True
+    anchors = d.get("anchors")
+    if isinstance(anchors, list) and anchors:
+        for a in anchors:
+            if not isinstance(a, dict):
+                continue
+            t = str(a.get("type") or a.get("anchor_type") or "")
+            if t in EC_ANCHOR_TYPES:
+                return True
+        blob = _blob(anchors)
+        if any(k in blob for k in ANCHOR_SHOP_KEYS) or any(h in blob for h in CART_HINTS):
+            return True
+    for k in CART_KEYS:
+        v = d.get(k)
+        if v:
+            blob = _blob(v)
+            if any(h in blob for h in CART_HINTS):
+                return True
+    return False

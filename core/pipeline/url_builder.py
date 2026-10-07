@@ -56,3 +56,24 @@ def tiktok_handle(text: str) -> str:
         m = re.search(r"/@([^/?#]+)", text)
         return m.group(1).lower() if m else ""
     return text.lstrip("@").lower()
+
+
+def tiktok_video_url(unique: str, video_id: str) -> str:
+    """Permalink video TikTok. Tập trung tại đây để VFR005 sạch."""
+    unique = (unique or "").strip()
+    if unique:
+        return f"https://www.tiktok.com/@{unique}/video/{video_id}"
+    return f"https://www.tiktok.com/video/{video_id}"
+
+
+def douyin_video_url(video_id: str) -> str:
+    """Permalink video Douyin. Tập trung tại đây để VFR005 sạch."""
+    return f"https://www.douyin.com/video/{video_id}"
+
+
+def xhs_note_url(note_id: str, token: str = "") -> str:
+    """Permalink note XHS (kèm xsec_token khi có). Tập trung tại đây để VFR005 sạch."""
+    url = f"https://www.xiaohongshu.com/explore/{note_id}"
+    if token:
+        url += f"?xsec_token={token}&xsec_source=pc_search"
+    return url

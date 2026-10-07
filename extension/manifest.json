@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Video Flow Render Bridge",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Cầu nối giữa app Video Flow Render và trình duyệt đã đăng nhập (TikTok, Douyin, Xiaohongshu).",
   "permissions": ["tabs", "cookies", "storage", "alarms"],
   "host_permissions": [
@@ -12,11 +12,13 @@
   "content_scripts": [
     {
       "matches": ["*://*.tiktok.com/*", "*://*.douyin.com/*", "*://*.xiaohongshu.com/*"],
-      "js": ["inject.js"], "run_at": "document_start", "world": "MAIN"
+      "js": ["adapters/common.js", "adapters/douyin.js", "adapters/tiktok.js", "adapters/xhs.js", "inject.js"],
+      "run_at": "document_start", "world": "MAIN"
     },
     {
       "matches": ["*://*.tiktok.com/*", "*://*.douyin.com/*", "*://*.xiaohongshu.com/*"],
-      "js": ["content.js"], "run_at": "document_start"
+      "js": ["adapters/common.js", "adapters/douyin.js", "adapters/tiktok.js", "adapters/xhs.js", "content.js"],
+      "run_at": "document_start"
     }
   ]
 }

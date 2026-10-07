@@ -6,6 +6,7 @@ import re
 
 from core.pipeline.normalizers.common import (as_str, dedupe_tags, dig, first_url, read_counts,
                                               to_epoch, walk)
+from core.pipeline.url_builder import xhs_note_url
 from core.types import VideoItem
 
 _MAP = {
@@ -63,11 +64,8 @@ def normalize(api: str, payload: object) -> list[VideoItem]:
         tags = [as_str(t.get("name")) for t in (card.get("tag_list") or []) if isinstance(t, dict)]
         tags += _TOPIC.findall(desc)
         token = as_str(outer.get("xsec_token") or card.get("xsec_token"))
-        url = f"https://www.xiaohongshu.com/explore/{vid}"
-        if token:
-            url += f"?xsec_token={token}&xsec_source=pc_search"
         out[vid] = VideoItem(
-            platform="xhs", video_id=vid, url=url,
+            platform="xhs", video_id=vid, url=xhs_note_url(vid, token),
             desc=(title + " " + desc).strip() if desc and title and desc != title else (desc or title),
             author_id=as_str(user.get("user_id")),
             author_name=as_str(user.get("nickname") or user.get("nick_name")),

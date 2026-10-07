@@ -15,9 +15,18 @@ from core.events import EventBus, JobState, Paused, Progress, VideoUpsert
 from core.infra.db import Repo
 from core.pipeline.filters import hashtag_matches, passes
 from core.pipeline.normalizers import normalize
-from core.pipeline.relevance import has_signal, relevance_score
+from core.pipeline.relevance import has_signal, measurable, relevance_score
 from core.pipeline.url_builder import build_url, tiktok_handle
-from core.types import PLATFORM_LABEL, ScrapeJob
+from core.types import PLATFORM_LABEL, ScrapeJob, VideoItem
+
+
+def _is_dom_api(api: str) -> bool:
+    return (api or "").startswith("dom://")
+
+
+def _has_any_stat(it: VideoItem) -> bool:
+    """True nếu có ít nhất một số liệu (phân biệt 0 với None)."""
+    return it.like is not None or it.comment is not None or it.collect is not None or it.share is not None
 
 
 class ExtLink(Protocol):
@@ -36,11 +45,14 @@ class _Cur:
     url: str
     target: int
     got: int = 0
-    seen: set[str] = field(default_factory=set)
+    seen: dict[str, str] = field(default_factory=dict)  # video_id -> "dom" | "api"
+    counted: set[str] = field(default_factory=set)
     rejected: int = 0
     rej: dict = field(default_factory=lambda: {"bộ lọc": 0, "sai hashtag": 0, "sai kênh": 0, "không sát từ khóa": 0})
     handle: str = ""
     reason: str = ""
+    shown: int = 0
+    skip_rel_logged: bool = False
     done: asyncio.Event = field(default_factory=asyncio.Event)
 
 
@@ -181,8 +193,10 @@ class TaskRunner:
         if cur.done.is_set():
             return
         api = str(msg.get("api") or msg.get("type"))
-        if cur.platform == "douyin" and cur.mode == "keyword" and "search" not in api.lower():
-            return   # feed/yêu thích/gợi ý không phải kết quả tìm kiếm
+        if cur.platform == "douyin" and cur.mode == "keyword":
+            if any(k in api.lower() for k in ("aweme/favorite", "solution/resource", "suggest_words",
+                                              "/feed/", "recommend", "related")):
+                return
         payload = msg.get("payload")
         if self.cfg.save_raw_captures:
             self._dump(cur.platform, api, payload)
@@ -191,12 +205,32 @@ class TaskRunner:
         if not items:
             return
         new_n = 0
+        src = "dom" if _is_dom_api(api) else "api"
         for it in items:
             if cur.got >= cur.target:
                 break
             if it.video_id in cur.seen:
-                continue
-            cur.seen.add(it.video_id)
+                old_src = cur.seen[it.video_id]
+                if src == "dom" and old_src == "api":
+                    continue  # DOM không được đè số thật của API
+                if src == "dom" and old_src == "dom" and not _has_any_stat(it):
+                    continue  # DOM rác lặp lại, tránh write vô ích
+                if it.video_id in cur.counted:
+                    # Đã tính vào target: chạy lại bộ lọc trước khi cập nhật số
+                    # liệu — nếu không video từng bị loại vẫn hiện UI.
+                    if self._fails_filters(it, cur, job):
+                        continue
+                    if src == "api":
+                        cur.seen[it.video_id] = "api"
+                    merged, _ = self.repo.upsert(it)
+                    self.bus.publish(VideoUpsert(merged, False))
+                    continue
+                # Chưa tính (discovery DOM hoặc từng bị loại): cho đi qua
+                # bộ lọc bình thường để nâng cấp lên bản API.
+                if src == "api":
+                    cur.seen[it.video_id] = "api"
+            else:
+                cur.seen[it.video_id] = src
             if cur.mode == "hashtag" and cur.platform != "tiktok" and not hashtag_matches(it, cur.input):
                 self._reject(cur, "sai hashtag")
                 continue
@@ -204,27 +238,65 @@ class TaskRunner:
                 self._reject(cur, "sai kênh")
                 continue
             if cur.mode == "keyword" and has_signal(it):
-                it.relevance = relevance_score(cur.input, it)
-                if job.min_relevance > 0 and it.relevance < job.min_relevance:
-                    if cur.rej["không sát từ khóa"] < 5:   # mẫu để chẩn đoán
-                        self.bus.log(f"  loại (sát {it.relevance:.2f}): {it.desc[:60]!r} "
-                                     f"tags={it.hashtags[:5]} tác giả={it.author_name!r}", "warn")
-                    self._reject(cur, "không sát từ khóa")
-                    continue
+                if not measurable(cur.input, cur.platform):
+                    if job.min_relevance > 0 and not cur.skip_rel_logged:
+                        cur.skip_rel_logged = True
+                        self.bus.log(
+                            "Từ khóa không có chữ Hán nên không so được với mô tả tiếng Trung: "
+                            "bỏ qua lọc 'sát từ khóa' (bật dịch máy để dịch sang tiếng Trung).",
+                            "warn",
+                        )
+                else:
+                    it.relevance = relevance_score(cur.input, it)
+                    if job.min_relevance > 0 and it.relevance < job.min_relevance:
+                        if cur.shown < 3:
+                            cur.shown += 1
+                            self.bus.log(
+                                f"Loại (sát {it.relevance:.0%} < {job.min_relevance:.0%}): "
+                                f"{(it.desc or '(không mô tả)')[:50]}",
+                                "warn",
+                            )
+                        self._reject(cur, "không sát từ khóa")
+                        continue
             ok, why = passes(it, job)
             if not ok:
                 self._reject(cur, "bộ lọc")
                 continue
+            if src == "dom" and not _has_any_stat(it):
+                # DOM discovery thiếu số liệu: bỏ hẳn (không lưu DB, không hiện UI,
+                # không tính target) — chờ bản API thật tới qua đường nâng cấp.
+                # Nếu không, bảng sẽ hiện video mà log vẫn báo 0/N.
+                continue
             it.query, it.task_id = cur.input, cur.id
             merged, is_new = self.repo.upsert(it)
-            cur.got += 1
-            new_n += 1 if is_new else 0
+            if it.video_id not in cur.counted:
+                cur.counted.add(it.video_id)
+                cur.got += 1
+                new_n += 1 if is_new else 0
             self.bus.publish(VideoUpsert(merged, is_new))
         if new_n or items:
             self.bus.publish(Progress(cur.got, cur.target, cur.input, 0, 0))
         if cur.got >= cur.target and not cur.done.is_set():
             cur.reason = "target"
             cur.done.set()  # _execute sẽ gửi `stop` cho extension sau khi thức dậy
+
+    def _fails_filters(self, it: VideoItem, cur: _Cur, job: ScrapeJob) -> bool:
+        """Chạy lại bộ lọc cho bản cập nhật số liệu (không chạm đếm rejected).
+
+        Video đã tính vào target nhưng bản API mới về vẫn phải đạt hashtag /
+        kênh / relevance / passes như lần đầu — nếu không video từng bị loại
+        vẫn hiện UI với attribution cũ.
+        """
+        if cur.mode == "hashtag" and cur.platform != "tiktok" and not hashtag_matches(it, cur.input):
+            return True
+        if cur.handle and it.author_id and it.author_id.lower() != cur.handle:
+            return True
+        if cur.mode == "keyword" and has_signal(it) and measurable(cur.input, cur.platform):
+            it.relevance = relevance_score(cur.input, it)
+            if job.min_relevance > 0 and it.relevance < job.min_relevance:
+                return True
+        ok, _ = passes(it, job)
+        return not ok
 
     @staticmethod
     def _reject(cur: _Cur, why: str) -> None:

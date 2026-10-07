@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "feature-dev": {
+      "source": "JaviMaligno/oss-agent",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/feature-dev/SKILL.md",
+      "computedHash": "76c9b4e513f0c706214541a0b09aad579172d12928f60cc23bf849dfec498cd6"
+    }
+  }
+}

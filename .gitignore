@@ -8,3 +8,13 @@ core/infra/browser/commands/__pycache__/**
 core/pipeline/__pycache__/**
 core/pipeline/normalizers/__pycache__/**
 core/services/__pycache__/**
+core/services/scrap_services/**
+core/services/task_managers/**
+core/utils/__pycache__/**
+tests/__pycache__/**
+.agents/**
+.claude/**
+# Bytecode files
+__pycache__/
+*.py[cod]
+*$py.class

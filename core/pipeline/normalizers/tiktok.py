@@ -4,13 +4,12 @@ Tên trường là [VERIFY] cho tới khi có fixture thật (docs/platforms/tik
 """
 from __future__ import annotations
 
-import json
-
 from core.pipeline.normalizers.common import (as_str, dedupe_tags, dig, first_url,
-                                              hashtags_from_text, read_counts, to_epoch, walk)
+                                              has_cart_signals, hashtags_from_text,
+                                              read_counts, to_epoch, walk)
+from core.pipeline.url_builder import tiktok_video_url
 from core.types import VideoItem
 
-CART_HINTS = ("shop", "product", "commerce")  # [VERIFY]
 _MAP = {
     "play": ("playCount", "play_count"),
     "like": ("diggCount", "digg_count"),
@@ -26,11 +25,7 @@ def _is_item(d: dict) -> bool:
 
 
 def _has_cart(item: dict) -> bool:
-    anchors = item.get("anchors")
-    if isinstance(anchors, list) and anchors:
-        blob = json.dumps(anchors, ensure_ascii=False).lower()
-        return any(h in blob for h in CART_HINTS)
-    return False
+    return has_cart_signals(item)
 
 
 def normalize(api: str, payload: object) -> list[VideoItem]:
@@ -60,7 +55,7 @@ def normalize(api: str, payload: object) -> list[VideoItem]:
         dur = video.get("duration")
         out[vid] = VideoItem(
             platform="tiktok", video_id=vid,
-            url=f"https://www.tiktok.com/@{unique}/video/{vid}" if unique else f"https://www.tiktok.com/video/{vid}",
+            url=tiktok_video_url(unique, vid),
             desc=desc, author_id=uid, author_name=name, hashtags=tags,
             cover_url=first_url(video.get("cover") or video.get("originCover") or video.get("dynamicCover")),
             play_url=first_url(video.get("playAddr") or video.get("downloadAddr")),
